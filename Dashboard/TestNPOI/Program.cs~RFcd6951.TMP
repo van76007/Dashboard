@@ -1,0 +1,31 @@
+﻿using System;
+using System.IO;
+using NPOI.HSSF.UserModel;
+using NPOI.POIFS.FileSystem;
+using NPOI.SS.UserModel;
+using System.Globalization;
+using NPOI.SS.Util;
+
+namespace TestNPOI
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            string templateFile = "C:\\Revenue Tracker.xls";
+            string dataFile = "Book1_RevenueTracker.xlsx";
+
+            using (StreamReader inputTemplate = new StreamReader(templateFile))
+            {
+                IWorkbook templateWorkbook = new HSSFWorkbook(new POIFSFileSystem(inputTemplate.BaseStream));
+
+                StreamReader inputData = new StreamReader(dataFile);
+                IWorkbook dataWorkbook = new HSSFWorkbook(new POIFSFileSystem(inputData.BaseStream));
+                // Merge templateWorkbook to dataWorkbook
+                foreach (ISheet sheet in templateWorkbook)
+                {
+
+                }
+        }
+    }
+}

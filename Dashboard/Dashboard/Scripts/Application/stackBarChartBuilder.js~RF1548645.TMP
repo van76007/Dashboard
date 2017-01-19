@@ -1,0 +1,57 @@
+﻿function StackBarChartBuilder() {
+    var target;
+    var chartInfo;
+
+    var options = {
+        title: '',
+        stackSeries: true,
+        seriesDefaults: {
+            renderer: $.jqplot.BarRenderer,
+            pointLabels: { show: true, location: 's' }
+        },
+        /*
+        series: [
+            { label: 'Electronics' },
+            { label: 'Software' }
+        ],
+        */
+        series:[],
+        axes: {
+            xaxis: {
+                renderer: $.jqplot.CategoryAxisRenderer,
+                ticks: []
+            },
+            yaxis: {
+                autoscale: true,
+                min: 0
+            }
+        },
+        legend: {
+            show: true,
+            placement: 'outsideGrid',
+            location: 'e'
+        }
+    };
+
+    return {
+        withTarget: function (anotherTarget) {
+            target = anotherTarget;
+            return this;
+        },
+        withChartInfo: function (anotherChartInfo) {
+            chartInfo = anotherChartInfo;
+            return this;
+        },
+        build: function () {
+            options.title = chartInfo.chartName;
+            options.axes.xaxis.ticks = chartInfo.ticks;
+            var data = [];
+
+            for (i = 0; i < chartInfo.series.length; i++) {
+                data.push(chartInfo.series[i].points);
+                options.series.push({ label: chartInfo.series[i].serieName });
+            }
+            return $.jqplot(target, [data], options);
+        }
+    };
+}

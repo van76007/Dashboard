@@ -1,0 +1,496 @@
+﻿using Microsoft.Practices.Unity;
+using NPOI.HSSF.UserModel;
+using NPOI.POIFS.FileSystem;
+using NPOI.SS.UserModel;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
+using System.IO;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+
+namespace Dashboard.Models
+{
+    public class ChartRepository : IChartRepository
+    {
+        [Dependency]
+        public DatabaseDBEntities context { get; set; }
+
+        void IChartRepository.Dispose()
+        {
+            context.Dispose();
+        }
+
+        IEnumerable<Report> IChartRepository.getAllReportsGivenType(int? ReportTypeId)
+        {
+            return context.Reports.Where(r => r.FK_Report_ReportType == ReportTypeId).ToList<Report>();
+        }
+
+        IEnumerable<ReportType> IChartRepository.getAllReportTypes()
+        {
+            // Note: Must click on DB.mdf file to open it first before running the app
+            return context.ReportTypes.ToList();
+        }
+
+        IEnumerable<SelectListItem> IChartRepository.getAllReportTypesAsList()
+        {
+            return context.ReportTypes.Select(t => new SelectListItem
+            {
+                Value = t.Id.ToString(),
+                Text = t.Type,
+                Selected = t.Id.Equals(1)
+            }).AsEnumerable();
+        }
+
+        IEnumerable<Chart> IChartRepository.retrieveCharts(int reportId)
+        {
+            var charts = context.ChartEntities.Where(c => c.ReportId == reportId).ToList<ChartEntity>();
+
+            List<Chart> result = new List<Chart>();
+            foreach (var chartEntity in charts)
+            {
+                // Convert ChartEntity to Chart: Chart is JSON object. ChartEntity is for storage because of Collection
+                Chart chart = new Chart();
+                chart.chartName = chartEntity.ChartName;
+                if (typeof(ChartType).IsEnumDefined(chartEntity.ChartType))
+                {
+                    chart.chartType = (ChartType)chartEntity.ChartType;
+                }
+                chart.ticks = chartEntity.TicksAsString.Split(',').ToList<string>();
+                assignSeries(chartEntity, chart);
+                result.Add(chart);
+            }
+
+            return result;
+        }
+
+        void IChartRepository.saveOrUpdateReport(Report report)
+        {
+            report.RevenueTrackerDatas = new List<RevenueTrackerData>();
+            populateTable(report);
+            context.Reports.Add(report);
+            context.SaveChanges();
+
+            report.ChartEntities = new List<ChartEntity>();
+            populateTableRevenueTrackerDashBoardData(report);
+        }
+
+        void IChartRepository.saveOrUpdateTemplate(ReportType template)
+        {
+            var exisitingTemplate = context.ReportTypes.Where(t => t.Type == template.Type).FirstOrDefault();
+
+            if (exisitingTemplate != null)
+            {
+                exisitingTemplate.TemplateUrl = template.TemplateUrl;
+            }
+            else
+            {
+                context.ReportTypes.Add(template);
+            }
+
+            context.SaveChanges();
+        }
+
+        private void assignSeries(ChartEntity chartEntity, Chart chart)
+        {
+            chart.series = new List<Serie>();
+            foreach (var serieEntity in chartEntity.SerieEntities)
+            {
+                Serie serie = new Serie();
+                serie.serieName = serieEntity.SerieName;
+                if (typeof(SerieType).IsEnumDefined(serieEntity.SerieType))
+                {
+                    serie.serieType = (SerieType)serieEntity.SerieType;
+                }
+                List<string> points = serieEntity.PointsAsString.Split(',').ToList<string>();
+                serie.points = new List<double>();
+                foreach (var p in points)
+                {
+                    serie.points.Add(double.Parse(p, System.Globalization.CultureInfo.InvariantCulture));
+                }
+                chart.series.Add(serie);
+            }
+        }
+
+        private void populateTable(Report report)
+        {
+            // @ToDo: Review this hardcoded mapping FK_Report_ReportType (=1) -> RevenueTrackerData entity
+            switch (report.FK_Report_ReportType)
+            {
+                case 1:
+                    populateTableRevenueTrackerData(report);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void populateTableRevenueTrackerData(Report report)
+        {
+            var fileExtension = Path.GetExtension(report.ReportUrl);
+            if (fileExtension.Equals(".xls", StringComparison.OrdinalIgnoreCase))
+            {
+                populateByExcel(report);
+            }
+            else if (fileExtension.Equals(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                populateByExcelX(report);
+            }
+        }
+
+        private void populateByExcelX(Report report)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void populateByExcel(Report report)
+        {
+            using (FileStream reportFileStream = new FileStream(report.ReportUrl, FileMode.Open, FileAccess.Read))
+            {
+                HSSFWorkbook dataWorkbook = new HSSFWorkbook(new POIFSFileSystem(reportFileStream));
+                ISheet sheet = dataWorkbook.GetSheetAt(0);
+                int rowIndex = 0;
+                foreach (IRow row in sheet)
+                {
+                    if(rowIndex > 0)
+                    {
+                        RevenueTrackerData data = new RevenueTrackerData();
+
+                        data.Name = (string)getCellContent(row.GetCell(0));
+                        var obj = getCellContent(row.GetCell(1));
+                        if (obj == null)
+                        {
+                            data.Total_Finance_PEPM_Calculated = null;
+                        }
+                        else
+                        {
+                            data.Total_Finance_PEPM_Calculated = (decimal)((double)obj);
+                        }
+
+                        obj = getCellContent(row.GetCell(2));
+                        if (obj == null)
+                        {
+                            data.Total_Finance_One_Time_Calculated = null;
+                        }
+                        else
+                        {
+                            data.Total_Finance_One_Time_Calculated = (decimal)((double)obj);
+                        }
+
+                        obj = getCellContent(row.GetCell(3));
+                        if (obj == null)
+                        {
+                            data.Month = null;
+                        }
+                        else
+                        {
+                            data.Month = (int)((double)obj);
+                        }
+
+                        obj = getCellContent(row.GetCell(4));
+                        if (obj == null)
+                        {
+                            data.Year = null;
+                        }
+                        else
+                        {
+                            data.Year = (int)((double)obj);
+                        }
+
+                        obj = getCellContent(row.GetCell(5));
+                        if (obj == null)
+                        {
+                            data.Contract_Date = null;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                data.Contract_Date = (DateTime)obj;
+                            } catch(InvalidCastException)
+                            {
+                                data.Contract_Date = null;
+                            }
+                        }
+
+                        data.Projected_Assignment = (string)getCellContent(row.GetCell(6));
+
+                        obj = getCellContent(row.GetCell(7));
+                        if (obj== null)
+                        {
+                            data.Projected_Project_Start_Date = null;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                data.Projected_Project_Start_Date = (DateTime)obj;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                data.Projected_Project_Start_Date = null;
+                            }
+                        }
+
+                        data.Imp_Planned_KO = "";  //(string)getCellContent(row.GetCell(8)); // BUG: This is DateTime
+                        data.Status_Comments = (string)getCellContent(row.GetCell(9));
+                        data.Hold_Explanation = (string)getCellContent(row.GetCell(10));
+                        data.Status = (string)getCellContent(row.GetCell(11));
+                        data.PSID = (string)getCellContent(row.GetCell(12));
+
+                        report.RevenueTrackerDatas.Add(data);
+                    } else
+                    {
+                        rowIndex++;
+                    }
+                }
+            }
+        }
+
+        private static object getCellContent(ICell cell)
+        {
+            object content = null;
+            if (cell == null)
+            {
+                return content;
+            }
+
+            switch (cell.CellType)
+            {
+                case CellType.Blank:
+                    content = cell.StringCellValue;
+                    break;
+                case CellType.Boolean:
+                    content = cell.BooleanCellValue;
+                    break;
+                case CellType.Error:
+                    content = cell.ErrorCellValue;
+                    break;
+                case CellType.Formula:
+                    //content = cell.CellFormula;
+                    content = cell.NumericCellValue;
+                    break;
+                case CellType.Numeric:
+                    content = cell.NumericCellValue;
+                    if (HSSFDateUtil.IsCellDateFormatted(cell))
+                    {
+                        content = cell.DateCellValue;
+                    }
+                    break;
+                case CellType.String:
+                    content = cell.StringCellValue;
+                    break;
+                case CellType.Unknown:
+                    content = cell.StringCellValue;
+                    break;
+                default:
+                    break;
+
+            }
+
+            return content;
+        }
+
+        private void populateTableRevenueTrackerDashBoardData(Report report)
+        {
+            // @ToDo: This code is tighly coupled to structure of DB
+            //        Parameterize Stored procedure?  
+            var year = 2015;
+
+            ChartEntity chart1 = new ChartEntity();
+            chart1.ChartName = "DWFM" + year + "REVENUE";
+            chart1.ChartType = (int)ChartType.MixChart;
+            chart1.TicksAsString = "JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP";
+            chart1.SerieEntities = new List<SerieEntity>  { };
+
+            ChartEntity chart2 = new ChartEntity();
+            chart2.ChartName = "DWFM" + year + "ACCOUNTS RECEIVED";
+            chart2.ChartType = (int)ChartType.MixChart;
+            chart2.TicksAsString = "JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP";
+            chart2.SerieEntities = new List<SerieEntity> { };
+
+            ChartEntity chart3 = new ChartEntity();
+            chart3.ChartName = year + "ACCOUNTS RECEIVED / REVENUE CATEGORIES";
+            chart3.ChartType = (int)ChartType.MixChart;
+            chart3.TicksAsString = "JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP";
+            chart3.SerieEntities = new List<SerieEntity> { };
+
+            ChartEntity chart4 = new ChartEntity();
+            chart4.ChartName = year + "REVENUE RECEIVED / REVENUE CATEGORIES";
+            chart4.ChartType = (int)ChartType.MixChart;
+            chart4.TicksAsString = "JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP";
+            chart4.SerieEntities = new List<SerieEntity> { };
+
+            
+            report.ChartEntities.Add(chart1);
+            report.ChartEntities.Add(chart2);
+            report.ChartEntities.Add(chart3);
+            report.ChartEntities.Add(chart4);
+            context.SaveChanges();
+
+            
+            var result = context.usp_Generate_Metrics_PEPM(year);
+            foreach (var v in result.ToList())
+            {
+                // CHART1
+                if (v.Category.Equals("TotalRevenuePerMonth", StringComparison.OrdinalIgnoreCase))
+                {
+                    SerieEntity serie = new SerieEntity();
+                    serie.SerieType = (int)SerieType.BarSerie;
+                    serie.SerieName = "Total Revenue Per Month";
+                    serie.PointsAsString = v.Jan + "," + v.Feb + "," + v.Mar + "," + v.Apr + "," + v.May + "," + v.Jun + "," + v.Jul + "," + v.Aug + "," + v.Sep;
+                    //serie.ChartEntity = chart1;
+                    chart1.SerieEntities.Add(serie);
+                    //context.SerieEntities.Add(serie);
+                }
+
+                if (v.Category.Equals("TotalRevenueBetween1000n3000", StringComparison.OrdinalIgnoreCase))
+                {
+                    SerieEntity serie = new SerieEntity();
+                    serie.SerieType = (int)SerieType.LineSerie;
+                    serie.SerieName = "Total Revenue Between 1000 and 3000";
+                    serie.PointsAsString = v.Jan + "," + v.Feb + "," + v.Mar + "," + v.Apr + "," + v.May + "," + v.Jun + "," + v.Jul + "," + v.Aug + "," + v.Sep;
+                    //serie.ChartEntity = chart1;
+                    chart1.SerieEntities.Add(serie);
+                    //context.SerieEntities.Add(serie);
+                }
+
+                if (v.Category.Equals("TotalRevenueLessThan100PerMonth", StringComparison.OrdinalIgnoreCase))
+                {
+                    SerieEntity serie = new SerieEntity();
+                    serie.SerieType = (int)SerieType.LineSerie;
+                    serie.SerieName = "Total Revenue Less Than 100 Per Month";
+                    serie.PointsAsString = v.Jan + "," + v.Feb + "," + v.Mar + "," + v.Apr + "," + v.May + "," + v.Jun + "," + v.Jul + "," + v.Aug + "," + v.Sep;
+                    //serie.ChartEntity = chart1;
+                    chart1.SerieEntities.Add(serie);
+                    //context.SerieEntities.Add(serie);
+                }
+
+                // CHART2
+                if (v.Category.Equals("TotalAccounts", StringComparison.OrdinalIgnoreCase))
+                {
+                    SerieEntity serie = new SerieEntity();
+                    serie.SerieType = (int)SerieType.BarSerie;
+                    serie.SerieName = "Total Number Of Accounts";
+                    serie.PointsAsString = v.Jan + "," + v.Feb + "," + v.Mar + "," + v.Apr + "," + v.May + "," + v.Jun + "," + v.Jul + "," + v.Aug + "," + v.Sep;
+                    //serie.ChartEntity = chart2;
+                    chart2.SerieEntities.Add(serie);
+                    //context.SerieEntities.Add(serie);
+                }
+
+                if (v.Category.Equals("CountBet1000and3000", StringComparison.OrdinalIgnoreCase))
+                {
+                    SerieEntity serie = new SerieEntity();
+                    serie.SerieType = (int)SerieType.LineSerie;
+                    serie.SerieName = "Number Of Accounts Between 1000 And 3000";
+                    serie.PointsAsString = v.Jan + "," + v.Feb + "," + v.Mar + "," + v.Apr + "," + v.May + "," + v.Jun + "," + v.Jul + "," + v.Aug + "," + v.Sep;
+                    //serie.ChartEntity = chart2;
+                    chart2.SerieEntities.Add(serie);
+                    //context.SerieEntities.Add(serie);
+                }
+
+                if (v.Category.Equals("CountLessThan1000", StringComparison.OrdinalIgnoreCase))
+                {
+                    SerieEntity serie = new SerieEntity();
+                    serie.SerieType = (int)SerieType.LineSerie;
+                    serie.SerieName = "Number Of Accounts Less Than 1000";
+                    serie.PointsAsString = v.Jan + "," + v.Feb + "," + v.Mar + "," + v.Apr + "," + v.May + "," + v.Jun + "," + v.Jul + "," + v.Aug + "," + v.Sep;
+                    //serie.ChartEntity = chart2;
+                    chart2.SerieEntities.Add(serie);
+                    //context.SerieEntities.Add(serie);
+                }
+
+                // CHART3
+                if (v.Category.Equals("PercentageAccountsGreater3000", StringComparison.OrdinalIgnoreCase))
+                {
+                    SerieEntity serie = new SerieEntity();
+                    serie.SerieType = (int)SerieType.BarSerie;
+                    serie.SerieName = "Percentage Of Accounts Greater Than 3000";
+                    serie.PointsAsString = v.Jan + "," + v.Feb + "," + v.Mar + "," + v.Apr + "," + v.May + "," + v.Jun + "," + v.Jul + "," + v.Aug + "," + v.Sep;
+                    //serie.ChartEntity = chart3;
+                    chart3.SerieEntities.Add(serie);
+                    //context.SerieEntities.Add(serie);
+                }
+
+                if (v.Category.Equals("PercentageAccountBet1000and3000", StringComparison.OrdinalIgnoreCase))
+                {
+                    SerieEntity serie = new SerieEntity();
+                    serie.SerieType = (int)SerieType.BarSerie;
+                    serie.SerieName = "Percentage Of Accounts Between 1000 And 3000";
+                    serie.PointsAsString = v.Jan + "," + v.Feb + "," + v.Mar + "," + v.Apr + "," + v.May + "," + v.Jun + "," + v.Jul + "," + v.Aug + "," + v.Sep;
+                    //serie.ChartEntity = chart3;
+                    chart3.SerieEntities.Add(serie);
+                    //context.SerieEntities.Add(serie);
+                }
+
+                if (v.Category.Equals("PercentageAccountLess1000", StringComparison.OrdinalIgnoreCase))
+                {
+                    SerieEntity serie = new SerieEntity();
+                    serie.SerieType = (int)SerieType.BarSerie;
+                    serie.SerieName = "Percentage Of Accounts Less Than 1000";
+                    serie.PointsAsString = v.Jan + "," + v.Feb + "," + v.Mar + "," + v.Apr + "," + v.May + "," + v.Jun + "," + v.Jul + "," + v.Aug + "," + v.Sep;
+                    //serie.ChartEntity = chart3;
+                    chart3.SerieEntities.Add(serie);
+                    //context.SerieEntities.Add(serie);
+                }
+
+                //CHART 4
+                if (v.Category.Equals("PercentageRevenueGreater3000", StringComparison.OrdinalIgnoreCase))
+                {
+                    SerieEntity serie = new SerieEntity();
+                    serie.SerieType = (int)SerieType.BarSerie;
+                    serie.SerieName = "Percentage Of Revenue Greater Than 3000";
+                    serie.PointsAsString = v.Jan + "," + v.Feb + "," + v.Mar + "," + v.Apr + "," + v.May + "," + v.Jun + "," + v.Jul + "," + v.Aug + "," + v.Sep;
+                    //serie.ChartEntity = chart4;
+                    chart4.SerieEntities.Add(serie);
+                    //context.SerieEntities.Add(serie);
+                }
+
+                if (v.Category.Equals("PercentageReevenueBetweenThan1000n3000", StringComparison.OrdinalIgnoreCase))
+                {
+                    SerieEntity serie = new SerieEntity();
+                    serie.SerieType = (int)SerieType.BarSerie;
+                    serie.SerieName = "Percentage Of Revenue Between 1000 And 3000";
+                    serie.PointsAsString = v.Jan + "," + v.Feb + "," + v.Mar + "," + v.Apr + "," + v.May + "," + v.Jun + "," + v.Jul + "," + v.Aug + "," + v.Sep;
+                    //serie.ChartEntity = chart4;
+                    chart4.SerieEntities.Add(serie);
+                    //context.SerieEntities.Add(serie);
+                }
+
+                if (v.Category.Equals("PercentageReevenueLessThan1000", StringComparison.OrdinalIgnoreCase))
+                {
+                    SerieEntity serie = new SerieEntity();
+                    serie.SerieType = (int)SerieType.BarSerie;
+                    serie.SerieName = "Percentage Of Revenue Less Than 1000";
+                    serie.PointsAsString = v.Jan + "," + v.Feb + "," + v.Mar + "," + v.Apr + "," + v.May + "," + v.Jun + "," + v.Jul + "," + v.Aug + "," + v.Sep;
+                    //serie.ChartEntity = chart4;
+                    chart4.SerieEntities.Add(serie);
+                    //context.SerieEntities.Add(serie);
+                }
+            }
+
+
+            context.ChartEntities.Add(chart1);
+            context.ChartEntities.Add(chart2);
+            context.ChartEntities.Add(chart3);
+            context.ChartEntities.Add(chart4);
+            context.SaveChanges();
+        }
+
+        private void test()
+        {
+            var result = context.usp_Generate_Metrics_PEPM(2015);
+
+            // OK we can return have it
+            foreach (var v in result.ToList())
+            {
+                var c = v.Category;
+                var j = v.Jan;
+                var d = v.Dec;
+                var st = v.ToString();
+            }
+            
+        }
+    }
+}

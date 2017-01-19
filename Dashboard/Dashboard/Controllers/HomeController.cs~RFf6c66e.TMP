@@ -1,0 +1,136 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using Dashboard.Models;
+using System.Data.Entity.Infrastructure;
+using System.IO;
+using System.Configuration;
+using System.Web.Configuration;
+
+namespace Dashboard.Controllers
+{
+    public class HomeController : Controller
+    {
+        private readonly IChartRepository repository;
+
+        public HomeController(IChartRepository repository)
+        {
+            this.repository = repository;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                repository.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        public ActionResult About()
+        {
+            ViewBag.Message = "About the application";
+
+            return View();
+        }
+
+        public ActionResult Contact()
+        {
+            ViewBag.Message = "Contact details";
+
+            return View();
+        }
+
+        public ActionResult DashBoard()
+        {
+            DashboardModel model = new DashboardModel();
+            model.reportTypes = repository.getAllReportTypes();
+            model.selectedReportTpe = "";
+            return View(model);
+        }
+
+        [HttpPost]
+        public JsonResult RetrieveChartData(int reportType)
+        {
+            return Json(this.repository.retrieveCharts(reportType));
+        }
+
+        public ActionResult BuildChart()
+        {
+            ReportType template = new ReportType();
+
+            BuildChartModel model = new BuildChartModel();
+            model.template = template;
+            model.ListOfReportTemplates = repository.getAllReportTypesAsList();
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        //public ActionResult UpdateTemplate([Bind(Include = "Type")]ReportType template, HttpPostedFileBase uploadTemplate)
+        public ActionResult UpdateTemplate([Bind(Include = "Type")]BuildChartModel model, HttpPostedFileBase uploadTemplate)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    if (uploadTemplate != null && uploadTemplate.ContentLength > 0)
+                    {
+                        var uploadDir = WebConfigurationManager.AppSettings["templateFolder"];
+                        var templatePath = Path.Combine(Server.MapPath(uploadDir), uploadTemplate.FileName);
+                        var templateUrl = Path.Combine(uploadDir, uploadTemplate.FileName);
+                        uploadTemplate.SaveAs(templatePath);
+
+                        var template = model.template;
+                        template.TemplateUrl = templateUrl;
+                        this.repository.saveOrUpdateTemplate(template);
+
+                        return RedirectToAction("BuildChart");
+                    }
+                }
+            }
+            catch (RetryLimitExceededException /* dex */)
+            {
+                //Log the error (uncomment dex variable name and add a line here to write a log.
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists see your system administrator.");
+            }
+            return RedirectToAction("BuildChart");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult UploadReport([Bind(Include = "SelectedReportTemplate")]BuildChartModel model, HttpPostedFileBase uploadReport)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    if (uploadReport != null && uploadReport.ContentLength > 0)
+                    {
+                        var s = model.SelectedReportTemplate;
+                        var r = uploadReport.FileName;
+                        /*
+                        var uploadDir = WebConfigurationManager.AppSettings["templateFolder"];
+                        var templatePath = Path.Combine(Server.MapPath(uploadDir), uploadTemplate.FileName);
+                        var templateUrl = Path.Combine(uploadDir, uploadTemplate.FileName);
+                        uploadTemplate.SaveAs(templatePath);
+
+                        template.TemplateUrl = templateUrl;
+                        this.repository.saveOrUpdateTemplate(template);
+                        */
+                        return RedirectToAction("BuildChart");
+                    }
+                }
+            }
+            catch (RetryLimitExceededException /* dex */)
+            {
+                //Log the error (uncomment dex variable name and add a line here to write a log.
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists see your system administrator.");
+            }
+            return RedirectToAction("BuildChart");
+        }
+    }
+}

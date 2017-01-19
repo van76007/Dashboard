@@ -1,0 +1,6 @@
+﻿CREATE TABLE [CodeNamespace] (
+[Id] INT IDENTITY(1, 1),
+[Name] NVARCHAR(100) NOT NULL,
+CONSTRAINT [PK_CodeNamespace] PRIMARY KEY ([Id]),
+CONSTRAINT [IXQ_CodeNamespace_Name] UNIQUE NONCLUSTERED ([Name])
+)

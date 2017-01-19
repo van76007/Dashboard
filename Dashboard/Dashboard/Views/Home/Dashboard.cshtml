@@ -1,0 +1,164 @@
+﻿@model Dashboard.Models.DashboardModel
+
+@{
+    ViewBag.Title = "Dashboard";
+}
+
+@section styles{
+    @Styles.Render("~/Content/jqplotcss")
+    @Styles.Render("~/Content/basecss")
+    @Styles.Render("~/Content/css")
+}
+
+@section scripts{
+
+    @Scripts.Render("~/bundles/jqplot")
+    
+    <script src="~/Scripts/Application/jquery.extension.js"></script>
+    <script src="~/Scripts/Application/barChartBuilder.js"></script>
+    <script src="~/Scripts/Application/pieChartBuilder.js"></script>
+    <script src="~/Scripts/Application/stackBarChartBuilder.js"></script>
+    <script src="~/Scripts/Application/multiBarChartBuilder.js"></script>
+    <script src="~/Scripts/Application/mixChartBuilder.js"></script>
+
+    <!-- Application -->
+    <script type="text/javascript">
+        var charts = [];
+        var barChartBuilder = new BarChartBuilder();
+        var pieChartBuilder = new PieChartBuilder();
+        var stackBarChartBuilder = new StackBarChartBuilder();
+        var multiBarChartBuilder = new MultiBarChartBuilder();
+        var mixChartBuilder = new MixChartBuilder();
+
+        $(function () {
+        });
+
+        $(document).ready(function () {
+            $('#SelectedReportTypeId').cascade({
+                url: '@Url.Action("Reports")',
+                paramName: 'reportTypeId',
+                childSelect: $('#SelectedReportId')
+            });
+
+            $('#SelectedReportId').change(function () {
+                drawDashBoard($(this).val());
+            });
+
+            var selectedReportId = $('#SelectedReportId').val();
+            console.log("selectedReportId is " + selectedReportId);
+            drawDashBoard(selectedReportId);
+        });
+
+        function drawDashBoard(reportId)
+        {
+            var request = $.ajax({
+                url: "/Home/RetrieveChartData",
+                method: "POST",
+                data: "reportId=" + reportId,
+                async: true
+            });
+
+            request.fail(function (jqXHR, textStatus) {
+                console.log("Request KO: " + textStatus);
+            });
+
+            request.done(function (data, textStatus, jqXHR) {
+                console.log(data);
+
+                // Clear old divs & charts
+                charts = [];
+                $('#content').empty();
+
+                // Use builders to build chart
+                var numberOfCharts = data.length;
+                if (numberOfCharts % 2 === 1) {
+                    numberOfCharts++;
+                }
+                var height = Math.floor(200 / numberOfCharts);
+
+                $.each(data,
+				    function (i, chartInfo) {
+				        var $div = $("<div>", { id: "chart" + i, class: "box" });
+				        $div.css({ "height": height + "%" });
+				        $('#content').append($div);
+
+				        var chart;
+				        switch (chartInfo.chartType) {
+				            case 1:
+				                chart = barChartBuilder.withTarget('chart' + i).withChartInfo(chartInfo).build();
+				                break;
+				            case 2:
+				                chart = pieChartBuilder.withTarget('chart' + i).withChartInfo(chartInfo).build();
+				                break;
+				            case 3:
+				                chart = stackBarChartBuilder.withTarget('chart' + i).withChartInfo(chartInfo).build();
+				                break;
+				            case 4:
+				                chart = multiBarChartBuilder.withTarget('chart' + i).withChartInfo(chartInfo).build();
+				                break;
+				            case 5:
+				                chart = mixChartBuilder.withTarget('chart' + i).withChartInfo(chartInfo).build();
+				                break;
+				            default:
+
+				        }
+
+				        charts.push(chart);
+				    });
+
+                // Attach enlarge event listener
+                $('.box').click(function () {
+                    console.log('charts.length ' + charts.length);
+
+                    if ($(this).hasClass('box')) {
+                        $(this).siblings().hide();
+                        $(this).removeClass('box').addClass('large');
+                        $(this).css({ "height": 100 + "%" });
+                        for (i = 0; i < charts.length; i++) {
+                            resizePlot(charts[i]);
+                        }
+                    } else {
+                        $(this).removeClass('large').addClass('box');
+                        $(this).css({ "height": height + "%" });
+                        $(this).siblings().show();
+                        for (i = 0; i < charts.length; i++) {
+                            resizePlot(charts[i]);
+                        }
+                    }
+                });
+
+                // Attach windows resize event listener
+                $(window).resize(function () {
+                    console.log('Resize windows');
+                    for (i = 0; i < charts.length; i++) {
+                        resizePlot(charts[i]);
+                    }
+                });
+
+            });
+        }
+
+        function resizePlot($plot) {
+            $plot.replot({ resetAxes: false });
+        }
+    </script>
+}
+
+<div class="form-horizontal top">
+    <div class="form-group">
+        @Html.Label("Report Type", new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.DropDownListFor(Model => Model.SelectedReportTypeId, new SelectList(Model.ReportTypes, "Id", "Type"), "--Select One Template--")
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.Label("Available Reports", new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.DropDownListFor(Model => Model.SelectedReportId, new SelectList(Model.Reports, "Id", "Name"), "--Select One Report--")
+        </div>
+    </div>
+</div>
+
+<!-- Canva to draw charts -->
+<div id="content" style="width: 1500px; height: 600px; position:relative;"></div>

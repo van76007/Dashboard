@@ -1,0 +1,345 @@
+﻿@model Dashboard.Models.BuildChartModel
+
+@{
+    ViewBag.Title = "Upload Report";
+}
+
+@section styles{
+    @Styles.Render("~/Content/basecss")
+    @Styles.Render("~/Content/css")
+    @Styles.Render("~/Content/jqplotcss")
+}
+
+@section scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/knockout")
+    @Scripts.Render("~/bundles/jqplot")
+
+    <script src="~/Scripts/Application/jquery.extension.js"></script>
+    <script src="~/Scripts/Application/seriesTableViewModel.js"></script>
+    <script src="~/Scripts/Application/seriesSelectionViewModel.js"></script>
+    <script src="~/Scripts/Application/barChartBuilder.js"></script>
+    <script src="~/Scripts/Application/pieChartBuilder.js"></script>
+    <script src="~/Scripts/Application/stackBarChartBuilder.js"></script>
+    <script src="~/Scripts/Application/multiBarChartBuilder.js"></script>
+    <script src="~/Scripts/Application/mixChartBuilder.js"></script>
+
+    <!-- Application -->
+    <script type="text/javascript">
+        $(function () {
+
+            $("#accordion").accordion({
+                collapsible: true,
+                heightStyle: "content"
+            });
+
+            if (@Model.ListOfReportTemplates.Count() == 0 ) {
+                console.log('No template');
+                $("#uploadExcelHeader").addClass("ui-state-disabled");
+                $("#uploadExcelHeader").attr("aria-expanded","false");
+                $("#uploadExcelHeader").attr("aria-selected","false");
+                $("#uploadExcel").css("display", "none");
+            }
+
+            $("#Report").change(function () {
+                validateFileUpload($(this), $("#UploadReport"), ['xls', 'xlsx'], "Wrong format! You must upload Excel file");
+            });
+            $("#UploadReport").click(function () {
+                validateFileUpload($("#Report"), $(this), ['xls', 'xlsx'], "Wrong format! You must upload Excel file");
+            });
+        });
+
+        $(document).ready(function () {
+            // Populate Reports drop down when a SQL Procedure is selected
+            $('#SelectedSQLProcedureId').cascade({
+                url: '@Url.Action("Repos")',
+                paramName: 'procedureId',
+                childSelect: $('#SelectedReportId')
+            });
+
+            // Populate SQL parameters panel when selected SQLProcedure change
+            $('#sqlProcedure').change(function () {
+                $("#PreviewChartCanvas").hide();
+                var calculationId =  $('#sqlProcedure').val();
+                $("#parameters").load('@(Url.Action("GetSQLParameters", "BuildChart",null, Request.Url.Scheme))?calculationId=' + calculationId);
+            });
+
+            $("#BuildChartCanvas").css("display", "none");
+        });
+
+        function activateAccordion()
+        {
+            $("#uploadExcelHeader").removeClass("ui-state-disabled");
+            $("#uploadExcelHeader").attr("aria-expanded","true");
+            $("#uploadExcelHeader").attr("aria-selected","true");
+            $("#uploadExcel").css("display", "block");
+        }
+
+        function validateFileUpload(selector, submitBtnSelector, validExts, errorMsg)
+        {
+            var file = getNameFromPath(selector.val());
+            if (file != null) {
+                var extension = file.substr((file.lastIndexOf('.') + 1));
+                var flag = false;
+                for (var i = 0, len = validExts.length; i < len; i++) {
+                    if (extension === validExts[i]) {
+                        flag = true;
+                        break;
+                    }
+                }
+                if (flag == false) {
+                    selector.next().text(errorMsg);
+                    submitBtnSelector.prop('disabled', true);
+                } else {
+                    submitBtnSelector.prop('disabled', false);
+                    selector.next().text("");
+                }
+            } else {
+                selector.next().text("You must select a file");
+                submitBtnSelector.prop('disabled', true);
+            }
+        }
+
+        function getNameFromPath(strFilepath) {
+            var objRE = new RegExp(/([^\/\\]+)$/);
+            var strName = objRE.exec(strFilepath);
+
+            if (strName == null) {
+                return null;
+            }
+            else {
+                return strName[0];
+            }
+        }
+
+        function calculateChartData() {
+            $("#BuildChartCanvas").css("display", "none");
+            $("#SavePreviewChartBtn").css("display", "none");
+            $("div#ChartCanvas").remove();
+
+            ko.cleanNode(document.getElementById("seriesSelectionCanvas"));
+            ko.cleanNode(document.getElementById("seriesTableCanvas"));
+
+            var calculationParams = {
+                CalculationId: $('#sqlProcedure').val(),
+                ReportId: $('#SelectedReportId').val(),
+                Parameters: [],
+                isValidParameters: true
+            };
+
+            $('#parameters').children('.form-group').each(function () {
+                var parName = $(this).find('label:first').attr('id');
+                var parValue = $(this).find('div > input').prop('value');
+                var parType = $(this).find('div > input').attr('dataType');
+                if (!isValidParameters(parValue, parType)) {
+                    $(this).find('div > span').text('Invalid value');
+                    calculationParams.isValidParameters = false;
+                    return false;
+                } else {
+                    $(this).find('div > span').text('');
+                    calculationParams.Parameters.push({"ParamName" : parName, "ParamValue" : parValue});
+                }
+            });
+
+            if(!calculationParams.isValidParameters) {
+                return false;
+            }
+
+            // POST AJAX to calculate series, Return series
+            var request = $.ajax({
+                url: "/BuildChart/RetrieveSeries",
+                method: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(calculationParams),
+                async: true
+            });
+
+            request.fail(function (jqXHR, textStatus) {
+                console.log("Request KO: " + textStatus);
+            });
+
+            request.done(function (data, textStatus, jqXHR) {
+                console.log(data);
+
+                if (data.length == 0) {
+                    $("#CalculateChartDataBtn").next().text('No data found');
+                    return;
+                } else {
+                    $("#CalculateChartDataBtn").next().text('');
+                }
+
+                var seriesArr = [];
+                var itemsReadFromDB = [];
+                $.each(data,
+				    function (i, serie) {
+				        seriesArr.push({'serieLabel': serie.serieName});
+				        itemsReadFromDB.push({
+				            selectedSerieType: ko.observable('BarSerie'),
+				            serieName:  serie.serieName,
+				            points: serie.points,
+                            ticks: serie.ticks
+				        });
+				    });
+
+                $("#BuildChartCanvas").css("display", "block");
+                
+                var postBox = new ko.subscribable();
+
+                var seriesSelectionViewModel = new SeriesSelectionViewModel(postBox, seriesArr);
+                ko.applyBindings(seriesSelectionViewModel, document.getElementById("seriesSelectionCanvas"));
+
+                var seriesTableViewModel = new SeriesTableViewModel(postBox, itemsReadFromDB);
+                ko.applyBindings(seriesTableViewModel, document.getElementById("seriesTableCanvas"));
+            });
+
+            return false;
+        }
+
+        function isValidParameters(parValue, parType) {
+            if(!parValue.trim()) {
+                return false;
+            }
+
+            if (parType == 'int') {
+                return !isNaN(parseFloat(parValue)) && isFinite(parValue);
+            }
+        }
+
+    </script>
+}
+
+<div id="accordion" class="chartbuilder">
+    
+    <!-- Accordion 1-->
+    <h3 id="uploadExcelHeader">Upload Excel report</h3>
+    <div id="uploadExcel">
+        @using (Html.BeginForm("UploadReport", "BuildChart", null, FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="form-horizontal">
+                
+                <div class="form-group">
+                    @Html.Label("Report Template", new { @class = "control-label col-md-2" })
+                    <div class="col-md-10">
+                        @Html.DropDownListFor(Model => Model.SelectedReportTemplate, Model.ListOfReportTemplates, "--Select One Template--")    
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    @Html.Label("Report", new { @class = "control-label col-md-2" })
+                    <div class="col-md-10">
+                        <input type="file" id="Report" name="uploadReport" />
+                        <span class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="submit" id="UploadReport" value="Upload Report" class="btn btn-default" />
+                        <span class="text-success"><p>@ViewBag.Message</p></span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Accordion 2-->
+    <h3 id="buildQueryHeader">Build Chart</h3>
+    <div id="buildQuery">
+        <div class="form-horizontal top">
+            <div class="form-group">
+                @Html.Label("Generate chart by query", new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.DropDownListFor(Model => Model.SelectedCalculationId, new SelectList(Model.Calculations, "Id", "Description"), "--Select One Procedure--", new { id = "sqlProcedure" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.Label("Available Reports", new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.DropDownListFor(Model => Model.SelectedReportId, new SelectList(Model.Reports, "Id", "Name"), "--Select One Report--")
+                </div>
+            </div>
+
+            <!--Let user enter values of SQL parameters -->
+            <div id="parameters">
+                @{Html.RenderPartial("_Parameters", Model.SQLParameters);}
+            </div>
+
+            <!--After user enters all SQL parameters, run SQL Procedure to generate chart data and start drawing charts-->
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <input type="submit" id="CalculateChartDataBtn" value="Calculate Chart Data" class="btn btn-default" onclick="return calculateChartData();"/>
+                    <span class="text-danger"></span>
+                </div>
+            </div>
+
+            <!--Display Chart canvas. Each canvas is a partial view that allows user to add/remove series and Save the Chart data -->
+            <!--Canva for previewing chart -->
+            <div id="BuildChartCanvas">
+
+                <div id="seriesSelectionCanvas">
+                    <div class="form-group">
+                        <label class="control-label col-md-2">Chart Name</label>
+                        <div class="col-md-10">
+                            <input id="ChartName" class="form-control text-box single-line" type="text" data-bind="value: chartName">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-2">Chart Type</label>
+                        <div class="col-md-10">
+                            <select id="ChartTypeSelection" single data-bind='options: chartTypes, optionsText: "chartTypeLabel", selectedOptions: selectedChartTypes'></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-2">Available Series</label>
+                        <div class="col-md-10">
+                            <select id="SerieSelection" disabled multiple data-bind='options: series, optionsText: "serieLabel", selectedOptions: selectedSeries'></select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="seriesTableCanvas" class="form-group">
+                    <label class="control-label col-md-2">To be displayed</label>
+                    <div id="seriesSelectionCanvas" class="col-md-10">
+                        <table class="table">
+                            <thead>
+                                <tr data-bind='foreach: columnNames'>
+                                    <th><span data-bind="text: $data"></span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="ChosenSeries" data-bind="foreach: items">
+                                <tr data-bind="foreach: $parent.columnNames">
+                                    <td data-bind="text: $parent[$data]"></td>
+                                    <!--Select serie type option-->
+                                    <td data-bind="visible : ($data === $root.columnNames()[$root.columnNames().length-1])">
+                                        <select data-bind='options: $root.serieType, value: $parent.selectedSerieType'></select>
+                                    </td>
+                                    <!-- Remove button -->
+                                    <td data-bind="visible : ($data === $root.columnNames()[$root.columnNames().length-1])">
+                                        <!-- $parent is serie; $data is Column name -->
+                                        <button data-bind='click: $root.removeSerie.bind($data, $parent)'>Remove</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-offset-2 col-md-10">
+                            <input type="submit" id="PreviewChartBtn" style="display:none; float:left; margin: 10px;" value="Preview Chart" class="btn btn-default" data-bind="click: previewChart" />
+                            <input type="submit" id="SavePreviewChartBtn" style="display:none; float:left; margin: 10px;" value="Save Chart" class="btn btn-default" data-bind="click: savePreviewChart" />
+                        </div>
+                        <div class="col-md-offset-2 col-md-10">
+                            <span id="confirmationMessage" style="margin:10px;"></span>
+                        </div>
+                    </div>
+                </div>
+                <span class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+</div>

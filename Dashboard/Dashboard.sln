@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dashboard", "Dashboard\Dashboard.csproj", "{59C64BDB-36D2-4637-8C14-6325DD2C854E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestNPOI", "TestNPOI\TestNPOI.csproj", "{35197BBF-13FF-4C7B-9D7A-9141F67BD1A3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{59C64BDB-36D2-4637-8C14-6325DD2C854E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59C64BDB-36D2-4637-8C14-6325DD2C854E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59C64BDB-36D2-4637-8C14-6325DD2C854E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59C64BDB-36D2-4637-8C14-6325DD2C854E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35197BBF-13FF-4C7B-9D7A-9141F67BD1A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35197BBF-13FF-4C7B-9D7A-9141F67BD1A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35197BBF-13FF-4C7B-9D7A-9141F67BD1A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35197BBF-13FF-4C7B-9D7A-9141F67BD1A3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

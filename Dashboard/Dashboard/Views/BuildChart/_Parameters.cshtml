@@ -1,0 +1,14 @@
+﻿@model IList<Dashboard.Models.SQLParam>
+
+@for (int i = 0; i < Model.Count; i++)
+{
+    <div class="form-group">
+        @Html.LabelFor(Model => Model[i].ParamValue, Model[i].ParamName, htmlAttributes: new { id = Model[i].ParamName, @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(Model => Model[i].ParamValue, Model[i].ParamValue, new { htmlAttributes = new { id = Model[i].ParamName, dataType = Model[i].ParamType, @class = "form-control", @style = "display:inline;" } })
+            @Html.ValidationMessageFor(Model => Model[i].ParamValue, "Value must be specified", new { @class = "text-danger" })
+        </div>
+    </div>
+}
+
+

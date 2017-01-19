@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="e7dd398a79c04fab8f478dd9c43e0717" Name="Diagram1">
+        <EntityTypeShape EntityType="DatabaseDBModel.Calculation" Width="1.5" PointX="3" PointY="9.25" />
+        <EntityTypeShape EntityType="DatabaseDBModel.ChartEntity" Width="1.5" PointX="5.25" PointY="1.375" />
+        <EntityTypeShape EntityType="DatabaseDBModel.CodeNamespace" Width="1.5" PointX="7.75" PointY="5.125" />
+        <EntityTypeShape EntityType="DatabaseDBModel.CodeValue" Width="1.5" PointX="10" PointY="4.875" />
+        <EntityTypeShape EntityType="DatabaseDBModel.Report" Width="1.5" PointX="3" PointY="3.75" />
+        <EntityTypeShape EntityType="DatabaseDBModel.ReportType" Width="1.5" PointX="0.75" PointY="5.375" />
+        <EntityTypeShape EntityType="DatabaseDBModel.RevenueTrackerData" Width="1.5" PointX="5.25" PointY="4.375" />
+        <EntityTypeShape EntityType="DatabaseDBModel.SerieEntity" Width="1.5" PointX="7.5" PointY="1.375" />
+        <AssociationConnector Association="DatabaseDBModel.FK__Calculati__FK_Ca__0E04126B" />
+        <AssociationConnector Association="DatabaseDBModel.FK_ChartEntity_Report" />
+        <AssociationConnector Association="DatabaseDBModel.FK_SerieEntity_ChartEntity" />
+        <AssociationConnector Association="DatabaseDBModel.FK_CodeValue_CodeNamespace" />
+        <AssociationConnector Association="DatabaseDBModel.FK__Report__FK_Repor__0A688BB1" />
+        <AssociationConnector Association="DatabaseDBModel.FK__RevenueTr__FK_Re__0880433F" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

@@ -1,0 +1,8 @@
+INSERT INTO [dbo].[CodeValue] ([CodeNamespaceId], [Value], [Description], [OrderBy]) VALUES (1, 0, N'BarChart', 0)
+INSERT INTO [dbo].[CodeValue] ([CodeNamespaceId], [Value], [Description], [OrderBy]) VALUES (1, 1, N'PieChart', 1)
+INSERT INTO [dbo].[CodeValue] ([CodeNamespaceId], [Value], [Description], [OrderBy]) VALUES (1, 2, N'StackBarChart', 2)
+INSERT INTO [dbo].[CodeValue] ([CodeNamespaceId], [Value], [Description], [OrderBy]) VALUES (1, 3, N'MultiBarChart', 3)
+INSERT INTO [dbo].[CodeValue] ([CodeNamespaceId], [Value], [Description], [OrderBy]) VALUES (1, 4, N'MixChart', 4)
+INSERT INTO [dbo].[CodeValue] ([CodeNamespaceId], [Value], [Description], [OrderBy]) VALUES (2, 0, N'BarSerie', 0)
+INSERT INTO [dbo].[CodeValue] ([CodeNamespaceId], [Value], [Description], [OrderBy]) VALUES (2, 1, N'LineSerie', 1)
+INSERT INTO [dbo].[CodeValue] ([CodeNamespaceId], [Value], [Description], [OrderBy]) VALUES (2, 2, N'PieSerie', 2)

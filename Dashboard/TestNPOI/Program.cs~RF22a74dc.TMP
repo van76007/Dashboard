@@ -1,0 +1,126 @@
+﻿using System;
+using System.IO;
+using NPOI.HSSF.UserModel;
+using NPOI.POIFS.FileSystem;
+using NPOI.SS.UserModel;
+using System.Globalization;
+using NPOI.SS.Util;
+using NPOI.XSSF.UserModel;
+using NPOI.SS.Formula.Functions;
+using NPOI.OpenXml4Net.OPC;
+
+namespace TestNPOI
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            // THIS CODE PROCESS .XLS format
+            /*
+            string templateFile = "C:\\Revenue Tracker.xls";
+            string dataFile = "C:\\Book1_RevenueTracker.xls";
+            string outputFile = "C:\\Revenue Tracker_Out.xls";
+
+            using (StreamReader inputTemplate = new StreamReader(templateFile))
+            {
+                HSSFWorkbook templateWorkbook = new HSSFWorkbook(new POIFSFileSystem(inputTemplate.BaseStream));
+
+                // Merge templateWorkbook to dataWorkbook
+                // 1. Empty sheet 1 of template
+                ISheet sheet = templateWorkbook.GetSheetAt(0);
+                var rowIndex = 1;
+                while (rowIndex <= sheet.LastRowNum)
+                {
+                    var row = sheet.GetRow(rowIndex);
+                    if (row != null) sheet.RemoveRow(row);
+                    rowIndex++;
+                }
+
+                // 2. Copy sheet 1 from data sheet to template sheet
+                using (StreamReader inputData = new StreamReader(dataFile))
+                {
+                    HSSFWorkbook dataWorkbook = new HSSFWorkbook(new POIFSFileSystem(inputData.BaseStream));
+                    ISheet dataSheet = dataWorkbook.GetSheetAt(0);
+
+                    var rowIdx = 0;
+                    while (rowIdx <= dataSheet.LastRowNum)
+                    {
+                        IRow dataRow = dataSheet.GetRow(rowIdx);
+                        IRow newRow = sheet.CreateRow(rowIdx);
+
+                        var cellIdx = 0;
+                        while (cellIdx <= dataRow.LastCellNum)
+                        {
+                            ICell newCell = newRow.CreateCell(cellIdx);
+                            ICell oldCell = dataRow.GetCell(cellIdx);
+                            if (oldCell != null)
+                            {
+                                switch (oldCell.CellType)
+                                {
+                                    case CellType.Blank:
+                                        newCell.SetCellValue(oldCell.StringCellValue);
+                                        break;
+                                    case CellType.Boolean:
+                                        newCell.SetCellValue(oldCell.BooleanCellValue);
+                                        break;
+                                    case CellType.Error:
+                                        newCell.SetCellErrorValue(oldCell.ErrorCellValue);
+                                        break;
+                                    case CellType.Formula:
+                                        newCell.SetCellFormula(oldCell.CellFormula);
+                                        break;
+                                    case CellType.Numeric:
+                                        newCell.SetCellValue(oldCell.NumericCellValue);
+                                        break;
+                                    case CellType.String:
+                                        newCell.SetCellValue(oldCell.RichStringCellValue);
+                                        break;
+                                    case CellType.Unknown:
+                                        newCell.SetCellValue(oldCell.StringCellValue);
+                                        break;
+                                }
+                            }
+                             
+                            cellIdx++;
+                        }
+                        rowIdx++;
+                    }
+                }
+
+                // 3. Force template formula to re-evaluate its value
+                foreach (ISheet sh in templateWorkbook)
+                {
+                    sh.ForceFormulaRecalculation = true;
+                }
+
+                using (StreamWriter outputTemplate = new StreamWriter(outputFile))
+                {
+                    templateWorkbook.Write(outputTemplate.BaseStream);
+                }
+            }
+            */
+
+            // THIS CODE PROCESS .XLSX format
+            string templateFile = "C:\\DWFM April 2016 Planning - 0413.xlsx";
+            string dataFile = "C:\\Book2.xlsx";
+            string outputFile = "C:\\DWFM April 2016 Planning - 0413_Out.xlsx";
+
+            using (FileStream templateFileStream = new FileStream(templateFile, FileMode.Open, FileAccess.Read))
+            {
+                XSSFWorkbook templateWorkbook = new XSSFWorkbook(OPCPackage.Open(templateFileStream));
+                XSSFWorkbook outputWorkbook = new XSSFWorkbook();
+
+                using (FileStream dataFileStream = new FileStream(dataFile, FileMode.Open, FileAccess.Read))
+                {
+                    XSSFWorkbook dataWorkbook = new XSSFWorkbook(OPCPackage.Open(dataFileStream));
+                    foreach (ISheet sheet in )
+                    {
+
+                    }
+                }
+
+                    
+            }
+        } // End main
+    }
+}

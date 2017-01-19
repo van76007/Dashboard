@@ -1,0 +1,15 @@
+CREATE TABLE [dbo].[tbl_Revenue_Tracker_Data](
+	[Name] [varchar](max) NULL,
+	[Total_Finance_PEPM_Calculated] [money] NULL,
+	[Total_Finance_One_Time_Calculated] [money] NULL,
+	[Month] [int] NULL,
+	[Year] [int] NULL,
+	[Contract_Date] [datetime] NULL,
+	[Projected_Assignment] [varchar](255) NULL,
+	[Projected_Project_Start_Date] [datetime] NULL,
+	[Imp_Planned_KO] [varchar](max) NULL,
+	[Status_Comments] [varchar](max) NULL,
+	[Hold_Explanation] [varchar](max) NULL,
+	[Status] [varchar](max) NULL,
+	[PSID] [varchar](max) NULL
+) ON [PRIMARY]

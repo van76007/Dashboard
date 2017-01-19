@@ -1,0 +1,68 @@
+﻿(function BarChartViewModel($) {
+    var self = this;
+
+    // Variables
+    self.items = ko.observableArray([]);
+
+    function Item(anItem) {
+        var self = this;
+        self.name = ko.observable(anItem.name);
+        self.val = ko.observable(anItem.val);
+    }
+
+    var buildChartPoints = function (items) {
+        var dataArray = [[]];
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            dataArray[0].push([item.name, item.val()]);
+        }
+        return dataArray;
+    }
+
+    self.updateChart = function (newItems) {
+        self.items(newItems);
+    }
+
+    // Chart
+    var barChart = $.jqplot('product_returns', buildChartPoints(self.items()),
+    {
+        title: 'Title',
+        series: [{ renderer: $.jqplot.BarRenderer }],
+        axes: {
+            /*
+            xaxis: { renderer: $.jqplot.CategoryAxisRenderer },
+            yaxis: {
+                label: 'Total in Dollars',
+                tickOptions: {
+                    formatString: "$%'d"
+                }
+            }
+            */
+            xaxis: { renderer: $.jqplot.CategoryAxisRenderer }
+        }
+    });
+
+    // KO
+    ko.bindingHandlers.barChart = {
+        init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
+            // This will be called when the binding is first applied to an element
+            // Set up any initial state, event handlers, etc. here
+        },
+        update: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
+            // This will be called once when the binding is first applied to an element,
+            // and again whenever the associated observable changes value.
+            // Update the DOM element based on the supplied values here.
+
+            var value = valueAccessor();
+
+            // Next, whether or not the supplied model property is observable, get its current value
+            var valueUnwrapped = ko.unwrap(value);
+            var items = valueUnwrapped;
+
+            barChart.series[0].data = expensesAllocationPieData(items)[0];
+            barChart.replot();
+        }
+    };
+
+    ko.applyBindings(self);
+})(jQuery);

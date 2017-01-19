@@ -1,0 +1,607 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="DatabaseDBModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Calculation">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="FK_Calculation_ReportType" Type="int" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ChartEntity">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ReportId" Type="int" Nullable="false" />
+          <Property Name="ChartType" Type="int" Nullable="false" />
+          <Property Name="ChartName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="TicksAsString" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="CodeNamespace">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="CodeValue">
+          <Key>
+            <PropertyRef Name="CodeNamespaceId" />
+            <PropertyRef Name="Value" />
+          </Key>
+          <Property Name="CodeNamespaceId" Type="int" Nullable="false" />
+          <Property Name="Value" Type="int" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="OrderBy" Type="int" />
+        </EntityType>
+        <EntityType Name="Report">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="FK_Report_ReportType" Type="int" Nullable="false" />
+          <Property Name="Name" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="ReportUrl" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ReportType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Type" Type="nvarchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <EntityType Name="RevenueTrackerData">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Name" Type="varchar(max)" />
+          <Property Name="Total_Finance_PEPM_Calculated" Type="money" />
+          <Property Name="Total_Finance_One_Time_Calculated" Type="money" />
+          <Property Name="Month" Type="int" />
+          <Property Name="Year" Type="int" />
+          <Property Name="Contract_Date" Type="datetime" />
+          <Property Name="Projected_Assignment" Type="varchar" MaxLength="255" />
+          <Property Name="Projected_Project_Start_Date" Type="datetime" />
+          <Property Name="Imp_Planned_KO" Type="varchar(max)" />
+          <Property Name="Status_Comments" Type="varchar(max)" />
+          <Property Name="Hold_Explanation" Type="varchar(max)" />
+          <Property Name="Status" Type="varchar(max)" />
+          <Property Name="PSID" Type="varchar(max)" />
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="FK_RevenueTrackerData_Report" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="SerieEntity">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ChartEntityId" Type="int" Nullable="false" />
+          <Property Name="CategoryId" Type="int" Nullable="false" />
+          <Property Name="SerieType" Type="int" Nullable="false" />
+          <Property Name="SerieName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="PointsAsString" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <Association Name="FK__Calculati__FK_Ca__0E04126B">
+          <End Role="ReportType" Type="Self.ReportType" Multiplicity="1" />
+          <End Role="Calculation" Type="Self.Calculation" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ReportType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Calculation">
+              <PropertyRef Name="FK_Calculation_ReportType" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Report__FK_Repor__0A688BB1">
+          <End Role="ReportType" Type="Self.ReportType" Multiplicity="1" />
+          <End Role="Report" Type="Self.Report" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ReportType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Report">
+              <PropertyRef Name="FK_Report_ReportType" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__RevenueTr__FK_Re__0880433F">
+          <End Role="Report" Type="Self.Report" Multiplicity="1" />
+          <End Role="RevenueTrackerData" Type="Self.RevenueTrackerData" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Report">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RevenueTrackerData">
+              <PropertyRef Name="FK_RevenueTrackerData_Report" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ChartEntity_Report">
+          <End Role="Report" Type="Self.Report" Multiplicity="1" />
+          <End Role="ChartEntity" Type="Self.ChartEntity" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Report">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ChartEntity">
+              <PropertyRef Name="ReportId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CodeValue_CodeNamespace">
+          <End Role="CodeNamespace" Type="Self.CodeNamespace" Multiplicity="1" />
+          <End Role="CodeValue" Type="Self.CodeValue" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CodeNamespace">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CodeValue">
+              <PropertyRef Name="CodeNamespaceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SerieEntity_ChartEntity">
+          <End Role="ChartEntity" Type="Self.ChartEntity" Multiplicity="1" />
+          <End Role="SerieEntity" Type="Self.SerieEntity" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ChartEntity">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="SerieEntity">
+              <PropertyRef Name="ChartEntityId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Function Name="usp_Generate_Metrics_PEPM" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="year" Type="int" Mode="In" />
+          <Parameter Name="lower" Type="int" Mode="In" />
+          <Parameter Name="upper" Type="int" Mode="In" />
+          <Parameter Name="report" Type="int" Mode="In" />
+        </Function>
+        <EntityContainer Name="DatabaseDBModelStoreContainer">
+          <EntitySet Name="Calculation" EntityType="Self.Calculation" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ChartEntity" EntityType="Self.ChartEntity" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="CodeNamespace" EntityType="Self.CodeNamespace" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="CodeValue" EntityType="Self.CodeValue" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Report" EntityType="Self.Report" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ReportType" EntityType="Self.ReportType" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RevenueTrackerData" EntityType="Self.RevenueTrackerData" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SerieEntity" EntityType="Self.SerieEntity" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK__Calculati__FK_Ca__0E04126B" Association="Self.FK__Calculati__FK_Ca__0E04126B">
+            <End Role="ReportType" EntitySet="ReportType" />
+            <End Role="Calculation" EntitySet="Calculation" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Report__FK_Repor__0A688BB1" Association="Self.FK__Report__FK_Repor__0A688BB1">
+            <End Role="ReportType" EntitySet="ReportType" />
+            <End Role="Report" EntitySet="Report" />
+          </AssociationSet>
+          <AssociationSet Name="FK__RevenueTr__FK_Re__0880433F" Association="Self.FK__RevenueTr__FK_Re__0880433F">
+            <End Role="Report" EntitySet="Report" />
+            <End Role="RevenueTrackerData" EntitySet="RevenueTrackerData" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ChartEntity_Report" Association="Self.FK_ChartEntity_Report">
+            <End Role="Report" EntitySet="Report" />
+            <End Role="ChartEntity" EntitySet="ChartEntity" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CodeValue_CodeNamespace" Association="Self.FK_CodeValue_CodeNamespace">
+            <End Role="CodeNamespace" EntitySet="CodeNamespace" />
+            <End Role="CodeValue" EntitySet="CodeValue" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SerieEntity_ChartEntity" Association="Self.FK_SerieEntity_ChartEntity">
+            <End Role="ChartEntity" EntitySet="ChartEntity" />
+            <End Role="SerieEntity" EntitySet="SerieEntity" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="DatabaseDBModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="DatabaseDBEntities" annotation:LazyLoadingEnabled="true">
+          <FunctionImport Name="usp_Generate_Metrics_PEPM" ReturnType="Collection(DatabaseDBModel.usp_Generate_Metrics_PEPM_Result)">
+            <Parameter Name="year" Mode="In" Type="Int32" />
+            <Parameter Name="lower" Mode="In" Type="Int32" />
+            <Parameter Name="upper" Mode="In" Type="Int32" />
+            <Parameter Name="report" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="Alpha" ReturnType="Collection(DatabaseDBModel.Alpha_Result)">
+            <Parameter Name="year" Mode="In" Type="Int32" />
+            <Parameter Name="lower" Mode="In" Type="Int32" />
+            <Parameter Name="upper" Mode="In" Type="Int32" />
+            <Parameter Name="report" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <EntitySet Name="Calculations" EntityType="DatabaseDBModel.Calculation" />
+          <EntitySet Name="ChartEntities" EntityType="DatabaseDBModel.ChartEntity" />
+          <EntitySet Name="CodeNamespaces" EntityType="DatabaseDBModel.CodeNamespace" />
+          <EntitySet Name="CodeValues" EntityType="DatabaseDBModel.CodeValue" />
+          <EntitySet Name="Reports" EntityType="DatabaseDBModel.Report" />
+          <EntitySet Name="ReportTypes" EntityType="DatabaseDBModel.ReportType" />
+          <EntitySet Name="RevenueTrackerDatas" EntityType="DatabaseDBModel.RevenueTrackerData" />
+          <EntitySet Name="SerieEntities" EntityType="DatabaseDBModel.SerieEntity" />
+          <AssociationSet Name="FK__Calculati__FK_Ca__0E04126B" Association="DatabaseDBModel.FK__Calculati__FK_Ca__0E04126B">
+            <End Role="ReportType" EntitySet="ReportTypes" />
+            <End Role="Calculation" EntitySet="Calculations" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ChartEntity_Report" Association="DatabaseDBModel.FK_ChartEntity_Report">
+            <End Role="Report" EntitySet="Reports" />
+            <End Role="ChartEntity" EntitySet="ChartEntities" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SerieEntity_ChartEntity" Association="DatabaseDBModel.FK_SerieEntity_ChartEntity">
+            <End Role="ChartEntity" EntitySet="ChartEntities" />
+            <End Role="SerieEntity" EntitySet="SerieEntities" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CodeValue_CodeNamespace" Association="DatabaseDBModel.FK_CodeValue_CodeNamespace">
+            <End Role="CodeNamespace" EntitySet="CodeNamespaces" />
+            <End Role="CodeValue" EntitySet="CodeValues" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Report__FK_Repor__0A688BB1" Association="DatabaseDBModel.FK__Report__FK_Repor__0A688BB1">
+            <End Role="ReportType" EntitySet="ReportTypes" />
+            <End Role="Report" EntitySet="Reports" />
+          </AssociationSet>
+          <AssociationSet Name="FK__RevenueTr__FK_Re__0880433F" Association="DatabaseDBModel.FK__RevenueTr__FK_Re__0880433F">
+            <End Role="Report" EntitySet="Reports" />
+            <End Role="RevenueTrackerData" EntitySet="RevenueTrackerDatas" />
+          </AssociationSet>
+          </EntityContainer>
+        <ComplexType Name="usp_Generate_Metrics_PEPM_Result">
+          <Property Type="String" Name="Category" Nullable="true" MaxLength="1000" />
+          <Property Type="String" Name="Jan" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Feb" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Mar" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Apr" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="May" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Jun" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Jul" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Aug" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Sep" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Oct" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Nov" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Dec" Nullable="true" MaxLength="100" />
+        </ComplexType>
+        <ComplexType Name="Alpha_Result">
+          <Property Type="String" Name="Category" Nullable="true" MaxLength="1000" />
+          <Property Type="String" Name="Jan" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Feb" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Mar" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Apr" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="May" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Jun" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Jul" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Aug" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Sep" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Oct" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Nov" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="Dec" Nullable="true" MaxLength="100" />
+        </ComplexType>
+        <EntityType Name="Calculation">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="FK_Calculation_ReportType" Type="Int32" Nullable="false" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="ReportType" Relationship="DatabaseDBModel.FK__Calculati__FK_Ca__0E04126B" FromRole="Calculation" ToRole="ReportType" />
+        </EntityType>
+        <EntityType Name="ChartEntity">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ReportId" Type="Int32" Nullable="false" />
+          <Property Name="ChartType" Type="Int32" Nullable="false" />
+          <Property Name="ChartName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TicksAsString" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Report" Relationship="DatabaseDBModel.FK_ChartEntity_Report" FromRole="ChartEntity" ToRole="Report" />
+          <NavigationProperty Name="SerieEntities" Relationship="DatabaseDBModel.FK_SerieEntity_ChartEntity" FromRole="ChartEntity" ToRole="SerieEntity" />
+        </EntityType>
+        <EntityType Name="CodeNamespace">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="CodeValues" Relationship="DatabaseDBModel.FK_CodeValue_CodeNamespace" FromRole="CodeNamespace" ToRole="CodeValue" />
+        </EntityType>
+        <EntityType Name="CodeValue">
+          <Key>
+            <PropertyRef Name="CodeNamespaceId" />
+            <PropertyRef Name="Value" />
+          </Key>
+          <Property Name="CodeNamespaceId" Type="Int32" Nullable="false" />
+          <Property Name="Value" Type="Int32" Nullable="false" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="OrderBy" Type="Int32" />
+          <NavigationProperty Name="CodeNamespace" Relationship="DatabaseDBModel.FK_CodeValue_CodeNamespace" FromRole="CodeValue" ToRole="CodeNamespace" />
+        </EntityType>
+        <EntityType Name="Report">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="FK_Report_ReportType" Type="Int32" Nullable="false" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="ReportUrl" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="ChartEntities" Relationship="DatabaseDBModel.FK_ChartEntity_Report" FromRole="Report" ToRole="ChartEntity" />
+          <NavigationProperty Name="ReportType" Relationship="DatabaseDBModel.FK__Report__FK_Repor__0A688BB1" FromRole="Report" ToRole="ReportType" />
+          <NavigationProperty Name="RevenueTrackerDatas" Relationship="DatabaseDBModel.FK__RevenueTr__FK_Re__0880433F" FromRole="Report" ToRole="RevenueTrackerData" />
+        </EntityType>
+        <EntityType Name="ReportType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Type" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Calculations" Relationship="DatabaseDBModel.FK__Calculati__FK_Ca__0E04126B" FromRole="ReportType" ToRole="Calculation" />
+          <NavigationProperty Name="Reports" Relationship="DatabaseDBModel.FK__Report__FK_Repor__0A688BB1" FromRole="ReportType" ToRole="Report" />
+        </EntityType>
+        <EntityType Name="RevenueTrackerData">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Name" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="Total_Finance_PEPM_Calculated" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="Total_Finance_One_Time_Calculated" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="Month" Type="Int32" />
+          <Property Name="Year" Type="Int32" />
+          <Property Name="Contract_Date" Type="DateTime" Precision="3" />
+          <Property Name="Projected_Assignment" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="Projected_Project_Start_Date" Type="DateTime" Precision="3" />
+          <Property Name="Imp_Planned_KO" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="Status_Comments" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="Hold_Explanation" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="Status" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="PSID" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="FK_RevenueTrackerData_Report" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Report" Relationship="DatabaseDBModel.FK__RevenueTr__FK_Re__0880433F" FromRole="RevenueTrackerData" ToRole="Report" />
+        </EntityType>
+        <EntityType Name="SerieEntity">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ChartEntityId" Type="Int32" Nullable="false" />
+          <Property Name="CategoryId" Type="Int32" Nullable="false" />
+          <Property Name="SerieType" Type="Int32" Nullable="false" />
+          <Property Name="SerieName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="PointsAsString" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="ChartEntity" Relationship="DatabaseDBModel.FK_SerieEntity_ChartEntity" FromRole="SerieEntity" ToRole="ChartEntity" />
+        </EntityType>
+        <Association Name="FK__Calculati__FK_Ca__0E04126B">
+          <End Type="DatabaseDBModel.ReportType" Role="ReportType" Multiplicity="1" />
+          <End Type="DatabaseDBModel.Calculation" Role="Calculation" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ReportType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Calculation">
+              <PropertyRef Name="FK_Calculation_ReportType" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ChartEntity_Report">
+          <End Type="DatabaseDBModel.Report" Role="Report" Multiplicity="1" />
+          <End Type="DatabaseDBModel.ChartEntity" Role="ChartEntity" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Report">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ChartEntity">
+              <PropertyRef Name="ReportId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SerieEntity_ChartEntity">
+          <End Type="DatabaseDBModel.ChartEntity" Role="ChartEntity" Multiplicity="1" />
+          <End Type="DatabaseDBModel.SerieEntity" Role="SerieEntity" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ChartEntity">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="SerieEntity">
+              <PropertyRef Name="ChartEntityId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CodeValue_CodeNamespace">
+          <End Type="DatabaseDBModel.CodeNamespace" Role="CodeNamespace" Multiplicity="1" />
+          <End Type="DatabaseDBModel.CodeValue" Role="CodeValue" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CodeNamespace">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CodeValue">
+              <PropertyRef Name="CodeNamespaceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Report__FK_Repor__0A688BB1">
+          <End Type="DatabaseDBModel.ReportType" Role="ReportType" Multiplicity="1" />
+          <End Type="DatabaseDBModel.Report" Role="Report" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ReportType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Report">
+              <PropertyRef Name="FK_Report_ReportType" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__RevenueTr__FK_Re__0880433F">
+          <End Type="DatabaseDBModel.Report" Role="Report" Multiplicity="1" />
+          <End Type="DatabaseDBModel.RevenueTrackerData" Role="RevenueTrackerData" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Report">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RevenueTrackerData">
+              <PropertyRef Name="FK_RevenueTrackerData_Report" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="DatabaseDBModelStoreContainer" CdmEntityContainer="DatabaseDBEntities">
+          <FunctionImportMapping FunctionImportName="usp_Generate_Metrics_PEPM" FunctionName="DatabaseDBModel.Store.usp_Generate_Metrics_PEPM">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="DatabaseDBModel.usp_Generate_Metrics_PEPM_Result">
+                <ScalarProperty Name="Category" ColumnName="Category" />
+                <ScalarProperty Name="Jan" ColumnName="Jan" />
+                <ScalarProperty Name="Feb" ColumnName="Feb" />
+                <ScalarProperty Name="Mar" ColumnName="Mar" />
+                <ScalarProperty Name="Apr" ColumnName="Apr" />
+                <ScalarProperty Name="May" ColumnName="May" />
+                <ScalarProperty Name="Jun" ColumnName="Jun" />
+                <ScalarProperty Name="Jul" ColumnName="Jul" />
+                <ScalarProperty Name="Aug" ColumnName="Aug" />
+                <ScalarProperty Name="Sep" ColumnName="Sep" />
+                <ScalarProperty Name="Oct" ColumnName="Oct" />
+                <ScalarProperty Name="Nov" ColumnName="Nov" />
+                <ScalarProperty Name="Dec" ColumnName="Dec" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="Alpha" FunctionName="DatabaseDBModel.Store.usp_Generate_Metrics_PEPM">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="DatabaseDBModel.Alpha_Result">
+                <ScalarProperty Name="Category" ColumnName="Category" />
+                <ScalarProperty Name="Jan" ColumnName="Jan" />
+                <ScalarProperty Name="Feb" ColumnName="Feb" />
+                <ScalarProperty Name="Mar" ColumnName="Mar" />
+                <ScalarProperty Name="Apr" ColumnName="Apr" />
+                <ScalarProperty Name="May" ColumnName="May" />
+                <ScalarProperty Name="Jun" ColumnName="Jun" />
+                <ScalarProperty Name="Jul" ColumnName="Jul" />
+                <ScalarProperty Name="Aug" ColumnName="Aug" />
+                <ScalarProperty Name="Sep" ColumnName="Sep" />
+                <ScalarProperty Name="Oct" ColumnName="Oct" />
+                <ScalarProperty Name="Nov" ColumnName="Nov" />
+                <ScalarProperty Name="Dec" ColumnName="Dec" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <EntitySetMapping Name="Calculations">
+            <EntityTypeMapping TypeName="DatabaseDBModel.Calculation">
+              <MappingFragment StoreEntitySet="Calculation">
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="FK_Calculation_ReportType" ColumnName="FK_Calculation_ReportType" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ChartEntities">
+            <EntityTypeMapping TypeName="DatabaseDBModel.ChartEntity">
+              <MappingFragment StoreEntitySet="ChartEntity">
+                <ScalarProperty Name="TicksAsString" ColumnName="TicksAsString" />
+                <ScalarProperty Name="ChartName" ColumnName="ChartName" />
+                <ScalarProperty Name="ChartType" ColumnName="ChartType" />
+                <ScalarProperty Name="ReportId" ColumnName="ReportId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CodeNamespaces">
+            <EntityTypeMapping TypeName="DatabaseDBModel.CodeNamespace">
+              <MappingFragment StoreEntitySet="CodeNamespace">
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CodeValues">
+            <EntityTypeMapping TypeName="DatabaseDBModel.CodeValue">
+              <MappingFragment StoreEntitySet="CodeValue">
+                <ScalarProperty Name="OrderBy" ColumnName="OrderBy" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Value" ColumnName="Value" />
+                <ScalarProperty Name="CodeNamespaceId" ColumnName="CodeNamespaceId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Reports">
+            <EntityTypeMapping TypeName="DatabaseDBModel.Report">
+              <MappingFragment StoreEntitySet="Report">
+                <ScalarProperty Name="ReportUrl" ColumnName="ReportUrl" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="FK_Report_ReportType" ColumnName="FK_Report_ReportType" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ReportTypes">
+            <EntityTypeMapping TypeName="DatabaseDBModel.ReportType">
+              <MappingFragment StoreEntitySet="ReportType">
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RevenueTrackerDatas">
+            <EntityTypeMapping TypeName="DatabaseDBModel.RevenueTrackerData">
+              <MappingFragment StoreEntitySet="RevenueTrackerData">
+                <ScalarProperty Name="FK_RevenueTrackerData_Report" ColumnName="FK_RevenueTrackerData_Report" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="PSID" ColumnName="PSID" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="Hold_Explanation" ColumnName="Hold_Explanation" />
+                <ScalarProperty Name="Status_Comments" ColumnName="Status_Comments" />
+                <ScalarProperty Name="Imp_Planned_KO" ColumnName="Imp_Planned_KO" />
+                <ScalarProperty Name="Projected_Project_Start_Date" ColumnName="Projected_Project_Start_Date" />
+                <ScalarProperty Name="Projected_Assignment" ColumnName="Projected_Assignment" />
+                <ScalarProperty Name="Contract_Date" ColumnName="Contract_Date" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="Total_Finance_One_Time_Calculated" ColumnName="Total_Finance_One_Time_Calculated" />
+                <ScalarProperty Name="Total_Finance_PEPM_Calculated" ColumnName="Total_Finance_PEPM_Calculated" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SerieEntities">
+            <EntityTypeMapping TypeName="DatabaseDBModel.SerieEntity">
+              <MappingFragment StoreEntitySet="SerieEntity">
+                <ScalarProperty Name="PointsAsString" ColumnName="PointsAsString" />
+                <ScalarProperty Name="SerieName" ColumnName="SerieName" />
+                <ScalarProperty Name="SerieType" ColumnName="SerieType" />
+                <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+                <ScalarProperty Name="ChartEntityId" ColumnName="ChartEntityId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
